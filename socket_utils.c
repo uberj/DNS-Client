@@ -7,16 +7,11 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#include "dnd_c.h"
+#include "dns_c.h"
 
 int send_request(struct DNS_REQUEST* query, int sockfd);
 int set_up_socket(struct addrinfo *name_server);
 void *get_in_addr(struct sockaddr *sa);
-
-
-int send_request(struct DNS_REQUEST* query,struct sockaddr *server){
-    
-}
 
 void *get_in_addr(struct sockaddr *sa){
     if (sa->sa_family == AF_INET) {
@@ -41,7 +36,7 @@ int set_up_socket(struct addrinfo *name_server){
     hints.ai_socktype = SOCK_DGRAM;
     hints.ai_flags = AI_PASSIVE; // Use local IP
 
-    if((warn = getaddrinfo(NULL, DNS_PORT, &hints, name_server)) != 0){
+    if((warn = getaddrinfo(NULL, DNS_PORT, &hints, &name_server)) != 0){
         printf("failed getting name server addr_info\n");
     }
     for( p = name_server; p != NULL; p = p->ai_next ){
@@ -50,7 +45,6 @@ int set_up_socket(struct addrinfo *name_server){
             continue;
         }
         // Set sending port
-        p->ai_addr->sin_addr = htons(LISTEN_PORT);
         if (bind(sockfd, p->ai_addr,p->ai_addrlen) == -1){
             perror("bind failed\n");
             continue;
@@ -63,7 +57,7 @@ int set_up_socket(struct addrinfo *name_server){
         printf("We got issues\n");
         return -1;
     }
-    freeaddrinfo(serverinfo);
+    freeaddrinfo(name_server);
     return sockfd;
 }
 
@@ -72,7 +66,7 @@ int set_up_socket(struct addrinfo *name_server){
  */
 int send_request(struct DNS_REQUEST* data, int sockfd){
     int s;
-    s = send(sockfd,data->query,data->size);
+    s = send(sockfd,data->query,data->size,0);
     if(s != data->size){
         printf("Not all data was sent.\n");
         return -1;
