@@ -5,9 +5,10 @@
 #include <sys/types.h>
 #include "dns_c.h"
 
-void _sub_string(int idx1, int idx2, char *string , char *dest_str);
 int build_query(char *query_addr);
-
+int build_header(struct DNS_REQUEST data);
+void _byte_copy(char *block, char *dest, int size){
+void _sub_string(int idx1, int idx2, char *string , char *dest_str);
 /*
  * 
      0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5
@@ -32,27 +33,29 @@ int build_query(char *query_addr);
  * DNS_REQUEST struct.
  */
 int build_header(struct DNS_REQUEST data){
+    // Byte offset we are at in the packet
+    int offset = 0;
     // char is 1 byte, 8 bits
     // Bits 0-15
 /* Line 0 */
-    unsigned char id[2]; // Bits 0-15 are the query identifier
+    _byte_copy(data->id,data->query+offset,2);    
+    offset = offset + 2;
 
 /* Line 1 */
     // First byte
-    unsigned char flags1; // 0      : Bit one Query or response
-                          // 1 - 4  : OPcode, set 0 for standard
-                          // 5      : AA, set to 1 for response 0 for query
-                          // 6      : TC, truncated
-                          // 7      : RD, Recursion desired 
+    _byte_copy(data->flags1,data->query+offset,2);    
+    offset = offset + 1;
     // Second byte
-    unsigned char flag2;  // 0      : RA, recursion available
-                          // 2-3    : set to zero
-                          // 4-7    : Rcode, set 0's for client
-/* Line 2 */
-    unsigned char QDcount[2]; // how many queries
-/* Line 3 - 5 */
-    unsigned char cruft[6]; // Stuff for the server to fill out.
+    _byte_copy(data->flags2,data->query+offset,2);    
+    offset = offset + 1;
 
+/* Line 2 */
+    _byte_copy(data->qdcount,data->query+offset,2);    
+    offset = offset + 2;
+
+/* Line 3 - 5 */
+    _byte_copy(data->cruft,data->query+offset,6);    
+    offset = offset + 6;
 
 }
 
@@ -79,8 +82,10 @@ int build_header(struct DNS_REQUEST data){
 int build_query(struct DNS_REQUEST data, char *query_addr){
     // char '0' is 48
     unsigned char count = '0';
-    unsigned char temp[strlen(query_addr)];
+    int size = strlen(query_addr);
+    unsigned char temp[size];
     int p = 0;
+
     count = count-48;
     // this is going to have to be debugged.
     for(int i=0; query_addr[i] != '\0';i++){
@@ -94,8 +99,19 @@ int build_query(struct DNS_REQUEST data, char *query_addr){
             count = count + 1;
         }
     }
-    strcp(data->query+DNS_HEADER_SIZE,query_addr);
+    if(i != size){
+        printf("Sanity check failed in build_query\n");
+    }
+    _byte_copy(tmp,data->query+DNS_HEADER_SIZE,i);
     // Should there be a null terminator in the query?
+
+    int offset = DNS_HEADER_SIZE + size;
+
+    // Copy in the qtype on qclass bytes
+    _byte_copy(data->qtype,temp[offset],2);
+
+    _byte_copy(data->qclass,temp[offset+2],2);
+    _byte_copy(tmp,data->query+DNS_HEADER_SIZE,size+4);
 }
 /*
  *  I'm sure string.h has a function for this. Take a sub string and copy it into another.
@@ -107,6 +123,18 @@ void _sub_string(int idx1, int idx2, char *string , char *dest_str){
     while(idx1 < idx2){
         dest_str[idx1] = string[idx2];
         idx1++;
+    }
+    return;
+}
+/*
+ *  Sure this function is laying around in some lib. oh well!
+ *  copy size number of byets from block into dest.
+ */
+void _byte_copy(char *block, char *dest, int size){
+    int i = 0;
+    while(i<size){
+        dest[i]=block[i];
+        i++;
     }
     return;
 }
