@@ -2,7 +2,7 @@
 #define NAME_SERVER "ns1.oregonstate.edu"
 #define LISTEN_PORT 7001
 #define DNS_PORT "53"
-#define DNS_HEADER_SIZE = 12
+#define DNS_HEADER_SIZE 12
 
 struct DNS_REQUEST{
     unsigned char query[SIZE];
@@ -40,7 +40,7 @@ struct DNS_REQUEST{
                           // 6      : TC, truncated
                           // 7      : RD, Recursion desired 
     // Second byte
-    unsigned char flag2;  // 0      : RA, recursion available
+    unsigned char flags2;  // 0      : RA, recursion available
                           // 2-3    : set to zero
                           // 4-7    : Rcode, set 0's for client
 /* Line 2 */
