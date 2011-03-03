@@ -64,7 +64,7 @@ struct DNS_REQUEST{
     |                     QCLASS                    |
     +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 */
-    unsigned char qname[SIZE];
+    unsigned char *RR;
     unsigned char qtype[2];
     unsigned char qclass[2];
 

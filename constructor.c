@@ -16,7 +16,7 @@ int build_header(struct DNS_REQUEST* data);
  */
 void _sub_string(int idx1, int idx2, char *string , unsigned char *dest_str){
     while(idx1 < idx2){
-        dest_str[idx1] = string[idx2];
+        dest_str[idx1] = string[idx1];
         idx1++;
     }
     return;
@@ -109,38 +109,39 @@ int build_header(struct DNS_REQUEST* data){
  */
 int build_query(struct DNS_REQUEST* data, char *query_addr){
     // char '0' is 48
-    unsigned char count = '0';
+    unsigned char count = 'A';
     int size = strlen(query_addr);
-    unsigned char temp[size];
-    int p = 0;
-    int i;
-    int offset;
+    unsigned char temp[size+4];
 
-    count = count-48;
     // this is going to have to be debugged.
-    for(i=0; query_addr[i] != '\0';i++){
-        if(query_addr[i] == '.'){
+    int i = 0;
+    int p = 0;
+    count -= 'A';
+    while(1){
+        if(query_addr[i] == '.' || query_addr[i] == '\0'){
             temp[p]= count;
-            _sub_string(p,i,query_addr,&temp[p+1]);
-            count = '0';
-            count = count - 48;
-            p=i;
+            _byte_copy((unsigned char *)&query_addr[p],&temp[p+1],count);
+            count = 'A'-'A';
+            p=i+1;
         }else{
-            count = count + 1;
+            count += ('B'-'A');
         }
+        i++;
+        // This is kind of weird, but necissary. We need to execute the copy
+        // statment one extra time to get the last .xxx string
+        if(query_addr[i-1] == '\0') break;
     }
-    if(i != size){
+    temp[i] = 'A'-'A'; // Null at the end
+    if(i != size+1){
         printf("Sanity check failed in build_query\n");
     }
-    _byte_copy(temp,data->query+DNS_HEADER_SIZE,i);
-    // Should there be a null terminator in the query?
-
-    offset = DNS_HEADER_SIZE + size;
-
+    
     // Copy in the qtype on qclass bytes
-    _byte_copy(data->qtype,&temp[offset],2);
-    _byte_copy(data->qclass,&temp[offset+2],2);
-    _byte_copy(temp,data->query+DNS_HEADER_SIZE,size+4);
+    _byte_copy(data->qtype,&temp[size+2],2);
+    _byte_copy(data->qclass,&temp[size+4],2);
+
+    // Now copy the entire temp var into the actual message
+    _byte_copy(temp,data->query+DNS_HEADER_SIZE,size+6);
 
     return 0;
 }
