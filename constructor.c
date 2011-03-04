@@ -1,12 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include "dns_c.h"
-
-int build_query(struct DNS_REQUEST* data, char *query_addr);
-int build_header(struct DNS_REQUEST* data);
+#include "constructor.h"
 
 /*
  *  I'm sure string.h has a function for this. Take a sub string and copy it into another.
@@ -109,22 +101,22 @@ int build_header(struct DNS_REQUEST* data){
  */
 int build_query(struct DNS_REQUEST* data, char *query_addr){
     // char '0' is 48
-    unsigned char count = 'A';
+    unsigned char count;
     int size = strlen(query_addr);
     unsigned char temp[size+4];
 
     // this is going to have to be debugged.
     int i = 0;
     int p = 0;
-    count -= 'A';
+    count = '\0';
     while(1){
         if(query_addr[i] == '.' || query_addr[i] == '\0'){
             temp[p]= count;
             _byte_copy((unsigned char *)&query_addr[p],&temp[p+1],count);
-            count = 'A'-'A';
+            count = '\0';
             p=i+1;
         }else{
-            count += ('B'-'A');
+            count += '\1';
         }
         i++;
         // This is kind of weird, but necissary. We need to execute the copy
@@ -142,6 +134,8 @@ int build_query(struct DNS_REQUEST* data, char *query_addr){
 
     // Now copy the entire temp var into the actual message
     _byte_copy(temp,data->query+DNS_HEADER_SIZE,size+6);
+    // Need this for sending
+    data->size=DNS_HEADER_SIZE+size+6;
 
     return 0;
 }

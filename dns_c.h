@@ -1,11 +1,19 @@
+#ifndef _HEADER_
+#define _HEADER_
+#include <netdb.h>
+#include <sys/types.h>
+#include <sys/time.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
 #define SIZE 512
 #define NAME_SERVER "ns1.oregonstate.edu"
 #define LISTEN_PORT 7001
 #define DNS_PORT "53"
 #define DNS_HEADER_SIZE 12
+#define SIZE_OF_RESP 512
 
 struct DNS_REQUEST{
-    unsigned char query[SIZE];
     int size;
     /************************************************
      *              THE HEADER                      *
@@ -64,8 +72,9 @@ struct DNS_REQUEST{
     |                     QCLASS                    |
     +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 */
-    unsigned char *RR;
+    unsigned char *query;
     unsigned char qtype[2];
     unsigned char qclass[2];
 
 };
+#endif

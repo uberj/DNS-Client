@@ -1,17 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include "dns_c.h"
-
-int send_request(struct DNS_REQUEST* query, int sockfd);
-int set_up_socket(struct addrinfo *name_server);
-void *get_in_addr(struct sockaddr *sa);
+#include "socket_utils.h"
 
 void *get_in_addr(struct sockaddr *sa){
     if (sa->sa_family == AF_INET) {
@@ -27,49 +14,56 @@ void *get_in_addr(struct sockaddr *sa){
  *  return: a file descriptor that can be sent and received from.
  */
 
-int set_up_socket(struct addrinfo *name_server){
-    int warn;
+int set_up_socket(struct addrinfo *server){
     int sockfd;
     struct addrinfo hints, *p;
-    memset(&hints,0,sizeof hints);
-    hints.ai_family = AF_UNSPEC; //IPv4
+    int x;
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_DGRAM;
-    hints.ai_flags = AI_PASSIVE; // Use local IP
 
-    if((warn = getaddrinfo(NULL, DNS_PORT, &hints, &name_server)) != 0){
-        printf("failed getting name server addr_info\n");
+    if ((x = getaddrinfo(NAME_SERVER, DNS_PORT, &hints, &server)) != 0) {
+        perror("getaddrinfo:\n");
+        return 1;
     }
-    for( p = name_server; p != NULL; p = p->ai_next ){
-        if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1){
-            perror("socket create failed\n");
-            continue;
-        }
-        // Set sending port
-        if (bind(sockfd, p->ai_addr,p->ai_addrlen) == -1){
-            perror("bind failed\n");
-            continue;
-        }
 
+    // loop through all the results and make a socket
+    for(p = server; p != NULL; p = p->ai_next) {
+        if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1){
+            perror("talker: socket");
+            continue;
+        }
+        server = p;
         break;
     }
 
-    if( p == NULL ){
-        printf("We got issues\n");
-        return -1;
+    if (p == NULL) {
+        printf("bind failed\n");
+        return 1;
     }
-    freeaddrinfo(name_server);
+
+    
+
     return sockfd;
 }
 
 /*
  *  Send data in the DNS_REQUEST struct to the file descriptor sockfd.
  */
-int send_request(struct DNS_REQUEST* data, int sockfd){
+int send_request(struct DNS_REQUEST* data, unsigned char *answer){
+    struct addrinfo server;
     int s;
-    s = send(sockfd,data->query,data->size,0);
-    if(s != data->size){
+    int sockfd;
+    sockfd = set_up_socket( &server );
+    s = sendto(sockfd, data->query, data->size, 0,server.ai_addr, server.ai_addrlen);
+    if (s == -1) {
+        perror("talker: sendto");
+        exit(1);
+    } if(s != data->size){
         printf("Not all data was sent.\n");
         return -1;
     }
+    s = recvfrom(sockfd,answer,SIZE_OF_RESP,0,server.ai_addr,server.ai_addrlen);
+
     return 0;
 }
