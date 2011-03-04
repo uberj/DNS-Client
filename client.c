@@ -35,7 +35,7 @@ int main( int argc, char **argv ){
     question.qtype[1] = '\1';    //0001
     question.qclass[0] = '\0';   //0000
     question.qclass[1] = '\1';   //0001
-    question.query = (unsigned char*) malloc(sizeof(unsigned char)*strlen(argv[1])+5);
+    question.query = (unsigned char*) malloc((sizeof(unsigned char)*strlen(argv[1]))+5);
     // Fill in that cruft
     int i;
     for(i=0;i<6;i++){

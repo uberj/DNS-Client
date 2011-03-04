@@ -54,6 +54,8 @@ int send_request(struct DNS_REQUEST* data, unsigned char *answer){
     struct addrinfo server;
     int s;
     int sockfd;
+    struct sockaddr_storage temp;
+    socklen_t addr_len;
     sockfd = set_up_socket( &server );
     s = sendto(sockfd, data->query, data->size, 0,server.ai_addr, server.ai_addrlen);
     if (s == -1) {
@@ -63,7 +65,8 @@ int send_request(struct DNS_REQUEST* data, unsigned char *answer){
         printf("Not all data was sent.\n");
         return -1;
     }
-    s = recvfrom(sockfd,answer,SIZE_OF_RESP,0,server.ai_addr,server.ai_addrlen);
+    addr_len = sizeof temp;
+    s = recvfrom(sockfd,answer,SIZE_OF_RESP,0,(struct sockaddr *)&temp,&addr_len);
 
     return 0;
 }
