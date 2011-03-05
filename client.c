@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include "socket_utils.h"
 #include "constructor.h"
+#include "parser.h"
 #include "dns_c.h"
 
 
@@ -62,8 +63,7 @@ int main( int argc, char **argv ){
     send_request(&question,&answer);
     printf("RESPONSE:\n");
     _hex_print(&answer,512);
-    //free(answer);
-    //free(question.query);
+    parse_answer(&answer,&question);
     return 0;
 
 }
@@ -73,7 +73,7 @@ int _hex_print( unsigned char* array, int size){
     printf("hex string: \n");
     for(i=0;i<size;i++){
         printf("%02hhX ",array[i]);
-        if((i+1)%20==0)
+        if((i+1)%16==0)
             printf("\n");
     }
     printf("\n");
