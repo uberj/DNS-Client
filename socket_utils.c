@@ -1,4 +1,5 @@
 #include "socket_utils.h"
+#include "c_utils.c"
 
 void *get_in_addr(struct sockaddr *sa){
     if (sa->sa_family == AF_INET) {
@@ -51,22 +52,10 @@ int set_up_socket(struct addrinfo *server){
  *  Send data in the DNS_REQUEST struct to the file descriptor sockfd.
  */
 int send_request(struct DNS_REQUEST* data, unsigned char *answer){
-    struct addrinfo server;
-    int s;
-    int sockfd;
-    struct sockaddr_storage temp;
-    socklen_t addr_len;
-    sockfd = set_up_socket( &server );
-    s = sendto(sockfd, data->query, data->size, 0,server.ai_addr, server.ai_addrlen);
-    if (s == -1) {
-        perror("talker: sendto");
-        exit(1);
-    } if(s != data->size){
-        printf("Not all data was sent.\n");
-        return -1;
-    }
-    addr_len = sizeof temp;
-    s = recvfrom(sockfd,answer,SIZE_OF_RESP,0,(struct sockaddr *)&temp,&addr_len);
+    int nb;
+    int sockfd = client_get_socket(DNS_PORT,NAME_SERVER);
+    send(sockfd,data->query,data->size,0);
+    nb = recv(sockfd,answer,512,0);
 
     return 0;
 }

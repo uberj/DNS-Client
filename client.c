@@ -7,15 +7,8 @@
 #include "constructor.h"
 #include "dns_c.h"
 
-int _hex_print( unsigned char* array, int size){
-    int i;
-    printf("hex string: ");
-    for(i=0;i<size;i++){
-        printf("%02hhX ",array[i]);
-    }
-    printf("\n");
-    return 1;
-}
+
+int _hex_print( unsigned char* array, int size);
 
 int main( int argc, char **argv ){
     struct DNS_REQUEST question;
@@ -35,7 +28,10 @@ int main( int argc, char **argv ){
     question.qtype[1] = '\1';    //0001
     question.qclass[0] = '\0';   //0000
     question.qclass[1] = '\1';   //0001
-    question.query = (unsigned char*) malloc((sizeof(unsigned char)*strlen(argv[1]))+5);
+//    int qsize = ( sizeof(unsigned char) * strlen(argv[1]) ) + 5;
+    //question.query = (unsigned char *) malloc( qsize );
+    unsigned char query[19];
+    question.query = &query;
     // Fill in that cruft
     int i;
     for(i=0;i<6;i++){
@@ -63,10 +59,23 @@ int main( int argc, char **argv ){
     /*
      *  Sending request
      */
-    send_request(&question,answer);
-    _hex_print(answer,512);
+    send_request(&question,&answer);
+    printf("RESPONSE:\n");
+    _hex_print(&answer,512);
     //free(answer);
     //free(question.query);
     return 0;
 
+}
+
+int _hex_print( unsigned char* array, int size){
+    int i;
+    printf("hex string: \n");
+    for(i=0;i<size;i++){
+        printf("%02hhX ",array[i]);
+        if((i+1)%20==0)
+            printf("\n");
+    }
+    printf("\n");
+    return 1;
 }
