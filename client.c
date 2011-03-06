@@ -10,6 +10,7 @@
 
 
 int _hex_print( unsigned char* array, int size);
+int remove_www(char *url);
 
 int main( int argc, char **argv ){
     struct DNS_REQUEST question;
@@ -32,7 +33,8 @@ int main( int argc, char **argv ){
 //    int qsize = ( sizeof(unsigned char) * strlen(argv[1]) ) + 5;
     //question.query = (unsigned char *) malloc( qsize );
     unsigned char query[19];
-    question.query = &query;
+    remove_www(argv[1]);
+    question.query = &query[0];
     // Fill in that cruft
     int i;
     for(i=0;i<6;i++){
@@ -60,12 +62,22 @@ int main( int argc, char **argv ){
     /*
      *  Sending request
      */
-    send_request(&question,&answer);
+    send_request(&question,&answer[0]);
     printf("RESPONSE:\n");
-    _hex_print(&answer,512);
-    parse_answer(&answer,&question);
+    _hex_print(&answer[0],512);
+    parse_answer(&answer[0],&question);
     return 0;
 
+}
+
+int remove_www(char *url){
+    char * temp;
+    if(url[0]=='w' && url[1]=='w' && url[2]=='w'){
+        temp = (char *) malloc(strlen(url)-2);
+        strcpy(temp,&url[4]);
+        strcpy(url,temp);
+    }
+    return 0;
 }
 
 int _hex_print( unsigned char* array, int size){
