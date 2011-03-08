@@ -14,7 +14,8 @@ int remove_www(char *url);
 
 int main( int argc, char **argv ){
     struct DNS_REQUEST question;
-    unsigned char answer[512];
+    unsigned char answer[SIZE_OF_RESP];
+    memset(answer,0,SIZE_OF_RESP);
     /*
      *  Ahead of all else, make the head.
      */
@@ -30,10 +31,7 @@ int main( int argc, char **argv ){
     question.qtype[1] = '\1';    //0001
     question.qclass[0] = '\0';   //0000
     question.qclass[1] = '\1';   //0001
-//    int qsize = ( sizeof(unsigned char) * strlen(argv[1]) ) + 5;
-    //question.query = (unsigned char *) malloc( qsize );
     unsigned char query[19];
-    remove_www(argv[1]);
     question.query = &query[0];
     // Fill in that cruft
     int i;
@@ -49,9 +47,7 @@ int main( int argc, char **argv ){
      * Get the query in the query.
      */
 
-    // start the query where we left off
 
-    // We want the len of the RR to be size of the request url, 1 null byte, and 4
     // bytes for qtype and class
     build_query(&question,argv[1]);
     // Print all the bytes in the DNS_HEADER, the request and the 4 bytes 
@@ -62,22 +58,12 @@ int main( int argc, char **argv ){
     /*
      *  Sending request
      */
-    send_request(&question,&answer[0]);
+    send_request(&question,answer);
     printf("RESPONSE:\n");
-    _hex_print(&answer[0],512);
-    parse_answer(&answer[0],&question);
+    _hex_print(answer,512);
+    parse_answer(answer,&question);
     return 0;
 
-}
-
-int remove_www(char *url){
-    char * temp;
-    if(url[0]=='w' && url[1]=='w' && url[2]=='w'){
-        temp = (char *) malloc(strlen(url)-2);
-        strcpy(temp,&url[4]);
-        strcpy(url,temp);
-    }
-    return 0;
 }
 
 int _hex_print( unsigned char* array, int size){

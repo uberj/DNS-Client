@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -g -Wall
 
-objects = client.o dns_c.h socket_utils.o constructor.o
+objects = client.o dns_c.h socket_utils.o constructor.o c_utils.o parser.o
 
 
 shell_lib.a: $(objects)
