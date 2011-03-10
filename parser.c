@@ -59,8 +59,8 @@ int _data_print( unsigned char* array, unsigned char size, int index, int ip){
             if(ip){
                 printf("%i.",array[index+i]);
             }else{
-                if(array[index+1]>0x21){
-                    if(array[index+1]>0x21){
+                if(array[index+i]>0x21){
+                    if(array[index+i]>0x21){
                         printf("%c",array[index+i]);
                     }else{
                         printf(".");
