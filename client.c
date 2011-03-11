@@ -16,6 +16,11 @@ int main( int argc, char **argv ){
     struct DNS_REQUEST question;
     unsigned char answer[SIZE_OF_RESP];
     memset(answer,0,SIZE_OF_RESP);
+    /* Sanitize inputs */
+    if(argv[1]==0){
+        printf("Usage:\t./client <host-name>\n");
+        exit(1);
+    }
     /*
      *  Ahead of all else, make the head.
      */
